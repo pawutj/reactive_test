@@ -4,6 +4,7 @@ import com.example.demo.exception.NotFoundException;
 import com.example.demo.model.IUser;
 import com.example.demo.model.UserEntity;
 import com.example.demo.model.UserList;
+import com.example.demo.model.UserWithKey;
 import com.example.demo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations;
@@ -30,18 +31,45 @@ public class UserController {
         return userRepository.findAll();
     }
 
-    public List<IUser> getIUser(List<UserEntity> users){
-        List<IUser> iusers = List.of();
+    public <T extends IUser> List<IUser> getIUser(List<T> users){
+        List<IUser> iusers = new ArrayList<>();
         for(int i=0;i<users.size();i++){
             iusers.add(users.get(i));
         }
         return iusers;
-
     }
 
     @GetMapping("/s4")
     public Mono<Integer> s4(){
         return Mono.just(Integer.valueOf(4)).map(i -> i+1);
+    }
+
+    @GetMapping("/s6")
+    public Mono<UserList> s6(){
+        Mono<UserWithKey> userListMono1 = userRepository.findAll().collectList().map( u -> {
+            return UserWithKey.builder().values(getIUser(u)).key("Mono1").build();
+        });
+        Mono<UserWithKey> userListMono2 = userRepository.findAll().collectList().map( u -> {
+            return UserWithKey.builder().values(getIUser(u)).key("Mono2").build();
+        });
+
+        Mono<UserWithKey> userListMono3 = userRepository.findAll().collectList().map( u -> {
+            return UserWithKey.builder().values(getIUser(u)).key("Mono3").build();
+        });
+
+        return userListMono1
+                .concatWith(userListMono2)
+                .concatWith(userListMono3)
+                .collectList()
+                .map(userEntities -> {
+                    UserList userList = UserList.builder().build();
+                    userList.setUserWithKeys(new ArrayList<>());
+                    for(int i=0 ;i< userEntities.size(); i++) {
+                        userList.getUserWithKeys().add(userEntities.get(i));
+                    }
+                    return userList;
+                });
+
     }
 
     @GetMapping("/s5")

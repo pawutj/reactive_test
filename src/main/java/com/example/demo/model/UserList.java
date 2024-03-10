@@ -16,6 +16,7 @@ public class UserList {
     public IUser user1;
     public IUser user2;
     public IUser user3;
+    public List<UserWithKey> userWithKeys;
 
 //    public UserList() {
 //        this.users  = new ArrayList<>();

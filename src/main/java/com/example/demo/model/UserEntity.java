@@ -11,7 +11,7 @@ import java.util.UUID;
 @Data
 @Builder
 @Table("app.user")
-public class UserEntity {
+public class UserEntity implements IUser{
 
     //Primary Key
     @Id
